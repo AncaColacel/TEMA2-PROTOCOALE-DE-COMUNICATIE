@@ -1,22 +1,23 @@
-/* TEMA2 PROTOCOALE DE COMUNICATII ANCA-MARIA COLACEL 324CC /*
-/* IMPLEMENTARE Aplicatie client-server TCP si UDP pentru gestionarea mesajelor /*
+# TEMA2 PROTOCOALE DE COMUNICATII ANCA-MARIA COLACEL 324CC 
+# IMPLEMENTARE Aplicatie client-server TCP si UDP pentru gestionarea mesajelor 
 
--- ORGANIZARE--
+**ORGANIZARE**
+
 Pentru implementarea acestei teme am stat aproximativ o saptamana. Precizez ca nu este implementata complet si nu primesc PASSED la toate testele, insa eu ruland si verificand manual obtin outputuri corecte, asadar voi descrie modul in care am gandit codul si modul in care testez local ce am facut. Limbajul folosit de mine este C.
 Pentru aceasta tema am creat 2 fisiere, unul pentru server numit server.c si unul pentru client numit subscriber.c.
-1. Fisierul subscriber. 
+**1. Fisierul subscriber.**
 Am inceput prin a analiza argumentele primite pentru a avea un cod robust, mai concret am verificat numarul lor si sa am un ID de maxim 10 caractere. Am creat apoi socketul de conexiune. In vectorul de structuri de tipul struct pollfd am adaugat campurile necesare, mai exact pentru fd am pus STDIN-ul pentru ca clientul comunica cu acest fd prin preluarea comenzilor de la
 tastatura, apoi am adaugat socketul de conexiune. Campul de events este POLLIN. Urmeaza completarea campurilor structurii serv_addr si realizarea apelului de connect. In bucla while folosesc poll pentru multiplexare si incep sa verific cele 2 evenimente care pot aparea si pe care vreau sa le analizez, anume citirea de la tastatura, atunci cand pfds[0].revents & POLLIN != 0 si primirea mesajelor de la socket. In primul caz citesc comanda cu fgets si o parsez cu strtok pentru a obtine comanda, topicul si SF-ul. Intai verific daca primesc exit, apoi daca am subscribe si daca da parsez si topicul si SF-ul, apoi daca am unsubscribe si atunci scot doar topicul. Parsarile sunt realizate cu strtok avand drept delimitatori " " (spatiu). Intrucat de fiecare data verific sa nu am erori, folosesc un flag check care este initial setat 1 si devine 0 daca pe parcursul operatiilor apare vreo eroare, la final verific acest flag si dau send catre socket cu mesajul corect. Aceasta functionalitate  este testata manual si functionaneaza conform asteptarilor, in client afisandu-se mesajele Subscribe to topic si Unsubscribe from topic, in functie de comanda, pentru a valida comportamnetul asteptat.
 Urmeaza situatia in care clientul primeste mesaje de la server. Se foloseste urmatoarea conditie: pfds[1].revents & POLLIN != 0, similara cu cea de mai sus doar ca acum este folosit fd-ul socketului care comunica cu serverul. Am dat recv si am printat bufferul primit si a fost ok si aici. Tin sa precizez ca fisierul contine print-uri pentru depistarea erorilor si a elementelor concludente pe care eu le-am folosit in procesul meu de verificare manuala.
-2. Fisierul server. 
+**2. Fisierul server.** 
 Acest fisier este mai amplu insa am inceput in aceeasi maniera prin a verifica argumentul primit in linia de comanda. Am creat socketi atat pt clientul tcp cat si pt clientul udp, am completat structurile  server_addr pentru ambii, apoi i-am adaugat in vector atat pe acestia 2 cat si pe STDIN. Urmeaza bind-ul si listen-ul apoi se intra in bucla while.  Folosesc poll pentru multiplexare si iau pe rand cele 3 cazuri, daca serverul comunica cu STDIN prin citirea comenzii, daca coumunica cu clientii prin primirea de cereri si trimiterea de raspunsuri. Situatia cu STDIN-ul analizeaza doar comanda exit. Atat aceasta cat si inchiderea clientului de mai sus sunt verificate si functioneaza. Urmeaza apoi if-ul cu conexiunea tcp. Am dat accept pt a confirma conexiunea si am adaugat noul fd intors de acesta la vector. Mai departe am dat receive si am verificat comanda primita apoi am printat "New client connected" si "New client connected" in functie de caz. 
 Urmeaza ultimul if, cu conexiunea udp. Am dat recvfrom (fiind neorientat pe conexiune nu am nevoie de accept) si am primit comanda dupa care am inceput prelucrarile. Initial am printat topicul si am vazut ca primesc ceea ce trebuie, apoi am trecut la tip de date si payload. Stiam din cerinta ce dimensiune are fiecare asa ca am spart bufferul in cele 3 componente pe care le-am salvat intr-un vector de structuri. In functie de valorile celor 3 tipuri de date am compus si payloadurile dupa cum este precizat in enunt. Toate acestea au fost printate, iar print-urile inca se gasesc in cod pentru a demonstra acest fapt. Am facut de asemenea o structura cu elemnetele care alacatuiau mesajul care trebuia intors spre clientul tcp. Pentru fiecare caz in parte am adaugat adresa clientului udp care a transmis mesajul (obtinuta prin accesarea structurii specifice populata dupa apelul recvfrom), portul clientului UDP (acelasi cu al serverului altfel nu ar fi posibila conexiunea, de aceea am si folosit argumentul din server), topicul, tipul de date si datele in sine. Parcurg apoi vectorul de mesaje de tip tcp si cel de udp pentru a gasi topicurile comune si a putea da send la structura formata. Acest lucru se intampla in fiecare if cu cele 4 tipuri de date.
 
---ALTE PRECIZARI--
+**ALTE PRECIZARI**
 - am folosit 2 zile de sleep days.
 - a fost o tema interesanta si desi multe lucruri nu sunt duse pana la capat am invatat multe lucruri noi pe care poate de la curs/laborator nu le stiam sau nu le intelesesem prea bine, asadar consider ca eforul depus este constructiv.
 
---BIBLIOGRAFIE--
+**BIBLIOGRAFIE**
 - am folosit mult laboratorul 7, atat pentru a intelege cat si a-mi forma un schelet de cod
 - https://linux.die.net/man/2/recvfrom
 - https://linux.die.net/man/2/recv
